@@ -19,7 +19,7 @@ import java.util.TreeSet;
 public final class OrderQueueImpl<E extends Order> implements OrderQueue<E> {
 
     /** Backing store for orders */
-    private TreeSet<E> queue = new TreeSet<E>();
+    private TreeSet<E> queue;
 
     /** The processor used during order processing */
     private OrderProcessor orderProcessor;
@@ -36,8 +36,9 @@ public final class OrderQueueImpl<E extends Order> implements OrderQueue<E> {
      * @param orderComparator - Comparator to be used for ordering
      * @param filter - the dispatch filter used to control dispatching from this queue
      */
-    public OrderQueueImpl(Comparator orderComparator, OrderDispatchFilter<?, E> filter) {
+    public OrderQueueImpl(final Comparator orderComparator, final OrderDispatchFilter<?, E> filter) {
         this.orderComparator = orderComparator;
+        queue = new TreeSet<E>(orderComparator);
         this.filter = filter;
     }
 
@@ -46,7 +47,8 @@ public final class OrderQueueImpl<E extends Order> implements OrderQueue<E> {
      * Constructor
      * @param filter - the dispatch filter used to control dispatching from this queue
      */
-    public OrderQueueImpl(OrderDispatchFilter<?, E> filter) {
+    public OrderQueueImpl(final OrderDispatchFilter<?, E> filter) {
+        queue = new TreeSet<E>();
         this.filter = filter;
     }
 
@@ -56,7 +58,7 @@ public final class OrderQueueImpl<E extends Order> implements OrderQueue<E> {
      * @param order - the order to be added to the queue
      */
     @Override
-    public void enqueue(E order) {
+    public void enqueue(final E order) {
         queue.add(order);
         dispatchOrders();
     }
