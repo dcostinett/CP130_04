@@ -1,7 +1,9 @@
 package edu.uw.danco.broker;
 
+import edu.uw.ext.framework.broker.OrderDispatchFilter;
 import edu.uw.ext.framework.broker.OrderManager;
 import edu.uw.ext.framework.broker.OrderProcessor;
+import edu.uw.ext.framework.broker.OrderQueue;
 import edu.uw.ext.framework.order.StopBuyOrder;
 import edu.uw.ext.framework.order.StopSellOrder;
 
@@ -18,6 +20,9 @@ public class OrderManagerImpl implements OrderManager {
 
     /** The price of the current stock being managed */
     private int price;
+
+    /** The processor that executes orders through the broker. */
+    private OrderProcessor processor;
 
 
     /**
@@ -58,8 +63,8 @@ public class OrderManagerImpl implements OrderManager {
 
 
     /**
-     *
-     * @param order
+     * Queue a stop buy order.
+     * @param order - the order to queue
      */
     @Override
     public void queueOrder(final StopBuyOrder order) {
@@ -68,8 +73,8 @@ public class OrderManagerImpl implements OrderManager {
 
 
     /**
-     *
-     * @param order
+     * Queue a stop sell order.
+     * @param order - the order to queue
      */
     @Override
     public void queueOrder(final StopSellOrder order) {
@@ -78,11 +83,57 @@ public class OrderManagerImpl implements OrderManager {
 
 
     /**
-     *
-     * @param processor
+     * Registers the processor to be used during order processing. This will be passed on to the order queues as the
+     * dispatch callback.
+     * @param processor - the callback to be registered
      */
     @Override
     public void setOrderProcessor(final OrderProcessor processor) {
+
+    }
+
+
+    /**
+     * Sets the stock ticker symbol
+     * @param stockTickerSymbol - the stockTickerSymbol to set
+     */
+    protected void 	setStockTickerSymbol(final String stockTickerSymbol) {
+        symbol = stockTickerSymbol;
+    }
+
+
+    /**
+     *
+     * @param stopBuyOrderFilter
+     */
+    protected void 	setStopBuyOrderFilter(final OrderDispatchFilter<Integer,StopBuyOrder> stopBuyOrderFilter) {
+
+    }
+
+
+    /**
+     *
+     * @param stopBuyOrderQueue
+     */
+    protected void 	setStopBuyOrderQueue(final OrderQueue<StopBuyOrder> stopBuyOrderQueue) {
+
+    }
+
+
+    /**
+     *
+     * @param stopSellOrderFilter
+     */
+    protected void 	setStopSellOrderFilter(final OrderDispatchFilter<Integer, StopSellOrder> stopSellOrderFilter) {
+
+    }
+
+
+    /**
+     *
+     * @param stopSellOrderQueue
+     */
+    protected void 	setStopSellOrderQueue(final OrderQueue<StopSellOrder> stopSellOrderQueue) {
 
     }
 }
