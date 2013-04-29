@@ -26,29 +26,22 @@ public class AccountFactoryImpl implements AccountFactory {
      * @return
      */
     @Override
-    public Account newAccount(String accountName, byte[] hashedPassword, int initialBalance) {
-        Preferences prefs = Preferences.userNodeForPackage(edu.uw.ext.framework.account.Account.class);
+    public Account newAccount(final String accountName,
+                              final byte[] hashedPassword,
+                              final int initialBalance) {
         AccountImpl account = null;
+
         try {
-            if (accountName.length() < prefs.getInt("minAccountLength", 8)) {
-                LOGGER.warning(String.format("Account creation failed for '%s', name too short", accountName));
-                return account;
+            account = new AccountImpl(accountName, hashedPassword,
+                                            initialBalance);
+            if (LOGGER.isLoggable(Level.INFO)) {
+                LOGGER.info("Created account: '" + accountName
+                                    + "', balance = " + initialBalance);
             }
-
-            if (initialBalance < prefs.getInt("minAccountBalance", 0)) {
-                LOGGER.warning(String.format("Account creation failed for account '%s', balance = %d",
-                        accountName, initialBalance));
-                return account;
-            }
-
-            account = new AccountImpl();
-            account.setName(accountName);
-            account.setPasswordHash(hashedPassword);
-            account.setBalance(initialBalance);
-
-            LOGGER.info(String.format("Created account: %s, balance = %d", accountName, initialBalance));
-        } catch (AccountException e) {
-            LOGGER.log(Level.SEVERE, "Unable to create account", e);
+        } catch (final AccountException ex) {
+            final String msg = "Account creation failed for , account '"
+                                       + accountName + "', balance = " + initialBalance;
+            LOGGER.log(Level.WARNING, msg, ex);
         }
 
         return account;

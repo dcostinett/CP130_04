@@ -20,6 +20,6 @@
     <!-- Bean implementing edu.uw.ext.framework.account.AccountManagerFactory -->
     <bean id="AccountManagerFactory" class="edu.uw.danco.account.AccountManagerFactoryImpl" />
 
-    <!--Bean implementing edu.uw.ext.framework.account.DaoFactory -->
-    <bean id="DaoFactory" class="edu.uw.danco.dao.FileAccountDaoFactoryImpl" />
+    <!-- Bean implementing edu.uw.ext.framework.account.DaoFactory -->
+    <bean id="DaoFactory" class="edu.uw.ext.framework.dao.XmlDaoFactory"/>
 </beans>
