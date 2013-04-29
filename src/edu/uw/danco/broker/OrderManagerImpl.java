@@ -26,11 +26,16 @@ public class OrderManagerImpl implements OrderManager {
     private OrderProcessor processor;
 
     /** The OrderQueue in which to place stop buy orders */
-    private OrderQueue<Order> stopBuyOrderQueue;
+    private OrderQueue<StopBuyOrder> stopBuyOrderQueue;
 
     /** The OrderQueue in which to place stop sell orders */
-    private OrderQueue<Order> stopSellOrderQueue;
+    private OrderQueue<StopSellOrder> stopSellOrderQueue;
 
+    /** The StopBuyOrder filter */
+    private OrderDispatchFilter<?, StopBuyOrder> stopBuyOrderFilter;
+
+    /** The StopSellOrder filter */
+    private OrderDispatchFilter<?, StopSellOrder> stopSellOrderFilter;
 
     /**
      * Constructor to be used by sub classes to finish initialization.
@@ -47,13 +52,11 @@ public class OrderManagerImpl implements OrderManager {
         this.symbol = symbol;
         this.price = price;
 
-        OrderDispatchFilter<?, StopBuyOrder> stopBuyFilter = new StopBuyOrderDispatchFilter(price);
-        OrderDispatchFilter<?, StopSellOrder> stopSellFilter = new StopSellOrderDispatchFilter(price);
+        stopBuyOrderFilter = new StopBuyOrderDispatchFilter(price);
+        stopSellOrderFilter = new StopSellOrderDispatchFilter(price);
 
-        stopBuyOrderQueue = new OrderQueueImpl<StopBuyOrder>(new StopBuyOrderComparator(),
-                                                                    stopBuyFilter);
-        stopSellOrderQueue = new OrderQueueImpl<StopSellOrder>(new StopSellOrderComparator(),
-                                                                      stopSellFilter);
+        stopBuyOrderQueue = new OrderQueueImpl<StopBuyOrder>(new StopBuyOrderComparator(), stopBuyOrderFilter);
+        stopSellOrderQueue = new OrderQueueImpl<StopSellOrder>(new StopSellOrderComparator(), stopSellOrderFilter);
     }
 
 
@@ -74,6 +77,8 @@ public class OrderManagerImpl implements OrderManager {
     @Override
     public void adjustPrice(int price) {
         this.price = price;
+        stopBuyOrderQueue.dispatchOrders();
+        stopSellOrderQueue.dispatchOrders();
     }
 
 
@@ -83,7 +88,8 @@ public class OrderManagerImpl implements OrderManager {
      */
     @Override
     public void queueOrder(final StopBuyOrder order) {
-
+        stopBuyOrderQueue.enqueue(order);
+        processor.process(order);
     }
 
 
@@ -93,7 +99,8 @@ public class OrderManagerImpl implements OrderManager {
      */
     @Override
     public void queueOrder(final StopSellOrder order) {
-
+        stopSellOrderQueue.enqueue(order);
+        processor.process(order);
     }
 
 
@@ -104,7 +111,7 @@ public class OrderManagerImpl implements OrderManager {
      */
     @Override
     public void setOrderProcessor(final OrderProcessor processor) {
-
+        this.processor = processor;
     }
 
 
@@ -122,7 +129,7 @@ public class OrderManagerImpl implements OrderManager {
      * @param stopBuyOrderFilter
      */
     protected void 	setStopBuyOrderFilter(final OrderDispatchFilter<Integer,StopBuyOrder> stopBuyOrderFilter) {
-
+        this.stopBuyOrderFilter = stopBuyOrderFilter;
     }
 
 
@@ -131,7 +138,7 @@ public class OrderManagerImpl implements OrderManager {
      * @param stopBuyOrderQueue
      */
     protected void 	setStopBuyOrderQueue(final OrderQueue<StopBuyOrder> stopBuyOrderQueue) {
-
+        this.stopBuyOrderQueue = stopBuyOrderQueue;
     }
 
 
@@ -140,7 +147,7 @@ public class OrderManagerImpl implements OrderManager {
      * @param stopSellOrderFilter
      */
     protected void 	setStopSellOrderFilter(final OrderDispatchFilter<Integer, StopSellOrder> stopSellOrderFilter) {
-
+        this.stopSellOrderFilter = stopSellOrderFilter;
     }
 
 
@@ -149,6 +156,6 @@ public class OrderManagerImpl implements OrderManager {
      * @param stopSellOrderQueue
      */
     protected void 	setStopSellOrderQueue(final OrderQueue<StopSellOrder> stopSellOrderQueue) {
-
+        this.stopSellOrderQueue = stopSellOrderQueue;
     }
 }
