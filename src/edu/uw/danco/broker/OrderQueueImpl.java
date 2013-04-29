@@ -7,6 +7,8 @@ import edu.uw.ext.framework.order.Order;
 
 import java.util.Comparator;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -18,14 +20,14 @@ import java.util.TreeSet;
  */
 public final class OrderQueueImpl<E extends Order> implements OrderQueue<E> {
 
+    /** The logger for this class */
+    private static final Logger LOGGER = Logger.getLogger(OrderQueueImpl.class.getName());
+
     /** Backing store for orders */
     private TreeSet<E> queue;
 
     /** The processor used during order processing */
     private OrderProcessor orderProcessor;
-
-    /** Comparator used ordering */
-    private Comparator orderComparator;
 
     /** The dispatch filter used to control dispatching from this queue */
     private OrderDispatchFilter<?, E> filter;
@@ -37,7 +39,6 @@ public final class OrderQueueImpl<E extends Order> implements OrderQueue<E> {
      * @param filter - the dispatch filter used to control dispatching from this queue
      */
     public OrderQueueImpl(final Comparator orderComparator, final OrderDispatchFilter<?, E> filter) {
-        this.orderComparator = orderComparator;
         queue = new TreeSet<E>(orderComparator);
         this.filter = filter;
     }
@@ -84,7 +85,10 @@ public final class OrderQueueImpl<E extends Order> implements OrderQueue<E> {
         while (!queue.isEmpty() && filter.check(queue.first())) {
             Order order = queue.first();
             orderProcessor.process(order);
-            queue.remove(order);
+            final boolean removed = queue.remove(order);
+            if (!removed) {
+                LOGGER.log(Level.SEVERE, "Unable to remove order from order queue");
+            }
         }
     }
 
