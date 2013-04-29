@@ -29,13 +29,13 @@ public class StopBuyOrderComparator implements Comparator<StopBuyOrder> {
         result = o1.getPrice() > o2.getPrice() ? 1 : o1.getPrice() < o2.getPrice() ? -1 : 0;
 
         if (result == 0) {
-            result = o1.getNumberOfShares() > o2.getNumberOfShares() ? 1 :
-                             o1.getNumberOfShares() < o2.getNumberOfShares() ? -1 : 0;
+            result = o1.getNumberOfShares() > o2.getNumberOfShares() ? -1 :
+                             o1.getNumberOfShares() < o2.getNumberOfShares() ? 1 : 0;
         }
 
         if (result == 0) {
-            result = o1.getOrderId() > o2.getOrderId() ? 1 :
-                             o1.getOrderId() < o2.getOrderId() ? -1 : 0;
+            result = o1.getOrderId() > o2.getOrderId() ? -1 :
+                             o1.getOrderId() < o2.getOrderId() ? 1 : 0;
         }
 
         return result;
