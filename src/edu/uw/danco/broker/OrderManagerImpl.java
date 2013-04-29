@@ -4,6 +4,7 @@ import edu.uw.ext.framework.broker.OrderDispatchFilter;
 import edu.uw.ext.framework.broker.OrderManager;
 import edu.uw.ext.framework.broker.OrderProcessor;
 import edu.uw.ext.framework.broker.OrderQueue;
+import edu.uw.ext.framework.order.Order;
 import edu.uw.ext.framework.order.StopBuyOrder;
 import edu.uw.ext.framework.order.StopSellOrder;
 
@@ -24,6 +25,12 @@ public class OrderManagerImpl implements OrderManager {
     /** The processor that executes orders through the broker. */
     private OrderProcessor processor;
 
+    /** The OrderQueue in which to place stop buy orders */
+    private OrderQueue<Order> stopBuyOrderQueue;
+
+    /** The OrderQueue in which to place stop sell orders */
+    private OrderQueue<Order> stopSellOrderQueue;
+
 
     /**
      * Constructor to be used by sub classes to finish initialization.
@@ -36,9 +43,17 @@ public class OrderManagerImpl implements OrderManager {
      * @param symbol - the ticker symbol of the stock this instance is manage orders for
      * @param price - the current price of stock to be managed
      */
-    public OrderManagerImpl(String symbol, int price) {
+    public OrderManagerImpl(final String symbol, int price) {
         this.symbol = symbol;
         this.price = price;
+
+        OrderDispatchFilter<?, StopBuyOrder> stopBuyFilter = new StopBuyOrderDispatchFilter(price);
+        OrderDispatchFilter<?, StopSellOrder> stopSellFilter = new StopSellOrderDispatchFilter(price);
+
+        stopBuyOrderQueue = new OrderQueueImpl<StopBuyOrder>(new StopBuyOrderComparator(),
+                                                                    stopBuyFilter);
+        stopSellOrderQueue = new OrderQueueImpl<StopSellOrder>(new StopSellOrderComparator(),
+                                                                      stopSellFilter);
     }
 
 
