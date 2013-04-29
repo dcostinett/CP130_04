@@ -56,16 +56,31 @@ public class OrderManagerImpl implements OrderManager {
         this.price = price;
     }
 
+
+    /**
+     *
+     * @param order
+     */
     @Override
     public void queueOrder(final StopBuyOrder order) {
 
     }
 
+
+    /**
+     *
+     * @param order
+     */
     @Override
     public void queueOrder(final StopSellOrder order) {
 
     }
 
+
+    /**
+     *
+     * @param processor
+     */
     @Override
     public void setOrderProcessor(final OrderProcessor processor) {
 
