@@ -19,7 +19,7 @@ import java.util.TreeSet;
 public final class OrderQueueImpl<E extends Order> implements OrderQueue<E> {
 
     /** Backing store for orders */
-    private TreeSet<E> queue;
+    private TreeSet<E> queue = new TreeSet<E>();
 
     /** The processor used during order processing */
     private OrderProcessor orderProcessor;
