@@ -14,6 +14,8 @@ import edu.uw.ext.framework.exchange.StockExchange;
 import edu.uw.ext.framework.exchange.StockQuote;
 import edu.uw.ext.framework.order.*;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,6 +28,9 @@ import java.util.logging.Logger;
 public class BrokerImpl implements Broker, ExchangeListener {
     /** The logger */
     private static final Logger LOGGER = Logger.getLogger(BrokerImpl.class.getName());
+
+    /** Algorithm used in password hashing */
+    public static final String ALGORITHM = "SHA1";
 
     /** The name of this broker instance */
     private String brokerName;
@@ -58,19 +63,30 @@ public class BrokerImpl implements Broker, ExchangeListener {
 
     /**
      * Returns the name of this broker
-     * @return
+     * @return - the value for the broker's name
      */
     @Override
     public String getName() {
         return brokerName;
     }
 
+
+    /**
+     * Sets the broker name.
+     *
+     * @param name the name to use for the broker
+     */
+    protected void setName(final String name) {
+        this.brokerName = name;
+    }
+
+
     /**
      * Create an account with this broker
-     * @param username
-     * @param password
-     * @param balance
-     * @return
+     * @param username - the username for the account
+     * @param password - the value to be used for the password
+     * @param balance - the initial balance
+     * @return - the account created with the provided values
      * @throws BrokerException
      */
     @Override
@@ -86,14 +102,57 @@ public class BrokerImpl implements Broker, ExchangeListener {
         return account;
     }
 
+
+    /**
+     * Remove the specified account
+     * @param username - account name to remove
+     * @throws BrokerException
+     */
     @Override
     public void deleteAccount(String username) throws BrokerException {
-
+        try {
+            acctManager.deleteAccount(username);
+        } catch (AccountException e) {
+            LOGGER.log(Level.SEVERE, "Unable to delete account " + username, e);
+            throw new BrokerException(e);
+        }
     }
 
+
+    /**
+     * Get the account specified by the username
+     * @param username - the name of the account to return
+     * @param password - the password for the account
+     * @return - the account if it is found
+     * @throws BrokerException
+     */
     @Override
-    public Account getAccount(String username, String password) throws BrokerException {
-        return null;
+    public Account getAccount(final String username, final String password) throws BrokerException {
+        Account account = null;
+        try {
+            account = acctManager.getAccount(username);
+
+            if (account != null) {
+                MessageDigest md = null;
+                try {
+                    md = MessageDigest.getInstance(ALGORITHM);
+                    md.update(password.getBytes());
+
+                    if (!MessageDigest.isEqual(md.digest(), account.getPasswordHash())) {
+                        account = null;
+                        LOGGER.log(Level.SEVERE, "Provided password doesn't match account");
+                        throw new BrokerException("Password doesn't match account");
+                    }
+                } catch (NoSuchAlgorithmException e) {
+                    LOGGER.log(Level.SEVERE, "Unable to create password hash", e);
+                    throw new BrokerException(e);
+                }
+            }
+        } catch (AccountException e) {
+            LOGGER.log(Level.SEVERE, "Unable to retrieve account with name: " + username, e);
+            throw new BrokerException(e);
+        }
+        return account;
     }
 
     @Override
@@ -169,15 +228,6 @@ public class BrokerImpl implements Broker, ExchangeListener {
 
 
     /**
-     * Sets the broker name.
-     * @param name
-     */
-    protected void setName(final String name) {
-        this.brokerName = name;
-    }
-
-
-    /**
      * Sets the stock exchange.
      * @param stockExchange
      */
@@ -185,4 +235,16 @@ public class BrokerImpl implements Broker, ExchangeListener {
         this.exchange = stockExchange;
     }
 
+
+    /**
+     * Helper method to hash a password
+     * @param pw
+     * @return
+     */
+    private byte[] hashPassword(final String pw) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance(ALGORITHM);
+        md.update(pw.getBytes());
+
+        return md.digest();
+    }
 }
