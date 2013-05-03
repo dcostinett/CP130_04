@@ -4,9 +4,10 @@ import edu.uw.ext.framework.broker.OrderDispatchFilter;
 import edu.uw.ext.framework.broker.OrderManager;
 import edu.uw.ext.framework.broker.OrderProcessor;
 import edu.uw.ext.framework.broker.OrderQueue;
-import edu.uw.ext.framework.order.Order;
 import edu.uw.ext.framework.order.StopBuyOrder;
 import edu.uw.ext.framework.order.StopSellOrder;
+
+import java.util.Comparator;
 
 /**
  * Created with IntelliJ IDEA.
@@ -32,10 +33,10 @@ public class OrderManagerImpl implements OrderManager {
     private OrderQueue<StopSellOrder> stopSellOrderQueue;
 
     /** The StopBuyOrder filter */
-    private OrderDispatchFilter<?, StopBuyOrder> stopBuyOrderFilter;
+    private OrderDispatchFilter<Integer, StopBuyOrder> stopBuyOrderFilter;
 
     /** The StopSellOrder filter */
-    private OrderDispatchFilter<?, StopSellOrder> stopSellOrderFilter;
+    private OrderDispatchFilter<Integer, StopSellOrder> stopSellOrderFilter;
 
     /**
      * Constructor to be used by sub classes to finish initialization.
@@ -77,7 +78,9 @@ public class OrderManagerImpl implements OrderManager {
     @Override
     public void adjustPrice(int price) {
         this.price = price;
+        stopBuyOrderFilter.setThreshold(price);
         stopBuyOrderQueue.dispatchOrders();
+        stopSellOrderFilter.setThreshold(price);
         stopSellOrderQueue.dispatchOrders();
     }
 

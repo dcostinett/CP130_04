@@ -7,7 +7,6 @@ import edu.uw.ext.framework.order.Order;
 
 import java.util.Comparator;
 import java.util.TreeSet;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -38,7 +37,7 @@ public final class OrderQueueImpl<E extends Order> implements OrderQueue<E> {
      * @param orderComparator - Comparator to be used for ordering
      * @param filter - the dispatch filter used to control dispatching from this queue
      */
-    public OrderQueueImpl(final Comparator orderComparator, final OrderDispatchFilter<?, E> filter) {
+    public OrderQueueImpl(final Comparator<E> orderComparator, final OrderDispatchFilter<?, E> filter) {
         queue = new TreeSet<E>(orderComparator);
         this.filter = filter;
     }
@@ -87,13 +86,12 @@ public final class OrderQueueImpl<E extends Order> implements OrderQueue<E> {
      */
     @Override
     public void dispatchOrders() {
-        while (!queue.isEmpty() && filter.check(queue.first())) {
-            Order order = queue.first();
-            orderProcessor.process(order);
-            final boolean removed = queue.remove(order);
-            if (!removed) {
-                LOGGER.log(Level.SEVERE, "Unable to remove order from order queue");
+        Order order = dequeue();
+        while (order != null) {
+            if (orderProcessor != null) {
+                orderProcessor.process(order);
             }
+            order = dequeue();
         }
     }
 

@@ -1,5 +1,6 @@
 package edu.uw.danco.broker;
 
+import edu.uw.ext.framework.order.PricedOrder;
 import edu.uw.ext.framework.order.StopSellOrder;
 
 import java.util.Comparator;

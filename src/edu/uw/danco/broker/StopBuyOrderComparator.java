@@ -1,5 +1,7 @@
 package edu.uw.danco.broker;
 
+import edu.uw.ext.framework.order.Order;
+import edu.uw.ext.framework.order.PricedOrder;
 import edu.uw.ext.framework.order.StopBuyOrder;
 
 import java.util.Comparator;
@@ -11,7 +13,6 @@ import java.util.Comparator;
  * Time: 4:37 PM
  */
 public class StopBuyOrderComparator implements Comparator<StopBuyOrder> {
-
 
     /**
      * Performs the comparison
@@ -26,7 +27,7 @@ public class StopBuyOrderComparator implements Comparator<StopBuyOrder> {
     public int compare(StopBuyOrder o1, StopBuyOrder o2) {
         int result;
 
-        result = o1.getPrice() > o2.getPrice() ? 1 : o1.getPrice() < o2.getPrice() ? -1 : 0;
+        result = o1.getPrice() < o2.getPrice() ? -1 : o1.getPrice() > o2.getPrice() ? 1 : 0;
 
         if (result == 0) {
             result = o1.getNumberOfShares() > o2.getNumberOfShares() ? -1 :
@@ -34,8 +35,8 @@ public class StopBuyOrderComparator implements Comparator<StopBuyOrder> {
         }
 
         if (result == 0) {
-            result = o1.getOrderId() > o2.getOrderId() ? 1 :
-                             o1.getOrderId() < o2.getOrderId() ? -1 : 0;
+            result = o1.getOrderId() < o2.getOrderId() ? -1 :
+                             o1.getOrderId() > o2.getOrderId() ? 1 : 0;
         }
 
         return result;

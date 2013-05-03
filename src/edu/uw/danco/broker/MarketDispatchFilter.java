@@ -8,6 +8,9 @@ import edu.uw.ext.framework.order.Order;
  * User: dcostinett
  * Date: 4/28/13
  * Time: 2:54 PM
+ *
+ * Dispatch filter that dispatches orders as long as the market is open. The threshold object will be a Boolean object
+ * indicating the state of the market.
  */
 public class MarketDispatchFilter extends OrderDispatchFilter<Boolean, Order> {
 

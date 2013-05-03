@@ -1,13 +1,9 @@
 package edu.uw.danco.broker;
 
-import edu.uw.danco.account.AccountFactoryImpl;
-import edu.uw.danco.account.AccountManagerImpl;
 import edu.uw.ext.framework.account.Account;
 import edu.uw.ext.framework.account.AccountException;
 import edu.uw.ext.framework.account.AccountManager;
-import edu.uw.ext.framework.broker.Broker;
-import edu.uw.ext.framework.broker.BrokerException;
-import edu.uw.ext.framework.broker.OrderQueue;
+import edu.uw.ext.framework.broker.*;
 import edu.uw.ext.framework.exchange.ExchangeEvent;
 import edu.uw.ext.framework.exchange.ExchangeListener;
 import edu.uw.ext.framework.exchange.StockExchange;
@@ -16,6 +12,8 @@ import edu.uw.ext.framework.order.*;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,11 +39,30 @@ public class BrokerImpl implements Broker, ExchangeListener {
     /** The stock exchange used by this broker */
     private StockExchange exchange;
 
+    /** The collection of OrderManagers */
+    Map<String, OrderManager> orderManagers;
+
+    /** The Dispatch Filter for market orders */
+    private MarketDispatchFilter marketDispatchFilter;
+
+    /** The market order queue */
+    private OrderQueue<Order> marketOrders;
+
 
     /**
      * Constructor for sub classes
      */
     protected BrokerImpl() {
+        String[] stockTickers = this.exchange.getTickers();
+        this.orderManagers = new TreeMap<String, OrderManager>();
+
+        for (String stockTicker : stockTickers) {
+            StockQuote quote = exchange.getQuote(stockTicker);
+            this.orderManagers.put(stockTicker, new OrderManagerImpl(quote.getTicker(), quote.getPrice()));
+        }
+
+        OrderDispatchFilter<Boolean, Order> filter = new MarketDispatchFilter(exchange.isOpen());
+        marketOrders = new OrderQueueImpl<Order>(filter);
     }
 
 
@@ -59,6 +76,16 @@ public class BrokerImpl implements Broker, ExchangeListener {
         this.brokerName = brokerName;
         this.acctManager = acctManager;
         this.exchange = exchange;
+
+        String[] stockTickers = this.exchange.getTickers();
+        this.orderManagers = new TreeMap<String, OrderManager>();
+
+        for (String stockTicker : stockTickers) {
+            StockQuote quote = exchange.getQuote(stockTicker);
+            this.orderManagers.put(stockTicker, new OrderManagerImpl(quote.getTicker(), quote.getPrice()));
+        }
+
+        marketOrders = new OrderQueueImpl<Order>(new MarketDispatchFilter(exchange.isOpen()));
     }
 
     /**
@@ -157,46 +184,49 @@ public class BrokerImpl implements Broker, ExchangeListener {
 
     @Override
     public StockQuote requestQuote(String ticker) throws BrokerException {
-        return null;
+        return exchange.getQuote(ticker);
     }
 
     @Override
     public void placeOrder(MarketBuyOrder order) throws BrokerException {
-
+        marketOrders.enqueue(order);
+        marketOrders.dispatchOrders();
     }
 
     @Override
     public void placeOrder(MarketSellOrder order) throws BrokerException {
-
+        marketOrders.enqueue(order);
+        marketOrders.dispatchOrders();
     }
 
     @Override
     public void placeOrder(StopBuyOrder order) throws BrokerException {
-
+        orderManagers.get(order.getStockTicker()).queueOrder(order);
     }
 
     @Override
     public void placeOrder(StopSellOrder order) throws BrokerException {
-
+        orderManagers.get(order.getStockTicker()).queueOrder(order);
     }
 
     @Override
     public void close() throws BrokerException {
-
+        // no op?
     }
 
     @Override
     public void exchangeOpened(ExchangeEvent event) {
-
+        exchange.addExchangeListener(this);
     }
 
     @Override
     public void exchangeClosed(ExchangeEvent event) {
-
+        exchange.removeExchangeListener(this);
     }
 
     @Override
     public void priceChanged(ExchangeEvent event) {
+        orderManagers.get(event.getTicker()).adjustPrice(event.getPrice());
 
     }
 
@@ -214,7 +244,7 @@ public class BrokerImpl implements Broker, ExchangeListener {
      * @param marketDispatchFilter
      */
     protected void setMarketDispatchFilter(final MarketDispatchFilter marketDispatchFilter) {
-
+        this.marketDispatchFilter = marketDispatchFilter;
     }
 
 
@@ -223,7 +253,7 @@ public class BrokerImpl implements Broker, ExchangeListener {
      * @param marketOrders
      */
     protected void setMarketOrderQueue(final OrderQueue<Order> marketOrders) {
-
+        this.marketOrders = marketOrders;
     }
 
 
