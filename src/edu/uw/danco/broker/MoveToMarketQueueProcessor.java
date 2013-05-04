@@ -15,15 +15,15 @@ import edu.uw.ext.framework.order.Order;
 public class MoveToMarketQueueProcessor implements OrderProcessor {
 
     /** The queue for orders */
-    private OrderQueue<Order> orderQueue;
+    private OrderQueue<Order> marketQueue;
 
 
     /**
      * Constructor
-     * @param orderQueue - the queue the orders will be moved to
+     * @param marketQueue - the queue the orders will be moved to
      */
-    public MoveToMarketQueueProcessor(OrderQueue<Order> orderQueue) {
-        this.orderQueue = orderQueue;
+    public MoveToMarketQueueProcessor(OrderQueue<Order> marketQueue) {
+        this.marketQueue = marketQueue;
     }
 
 
@@ -33,6 +33,6 @@ public class MoveToMarketQueueProcessor implements OrderProcessor {
      */
     @Override
     public void process(final Order order) {
-        orderQueue.enqueue(order);
+        marketQueue.enqueue(order);
     }
 }

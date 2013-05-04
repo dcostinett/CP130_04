@@ -8,19 +8,17 @@ import edu.uw.ext.framework.order.StopSellOrder;
  * User: dcostinett
  * Date: 4/28/13
  * Time: 5:00 PM
+ *
+ * Dispatch filter that dispatches any orders having a price above the current market price (threshold).
  */
 public class StopSellOrderDispatchFilter extends OrderDispatchFilter<Integer, StopSellOrder> {
-
-    /** The initial price (threshold) */
-    private int initPrice;
-
 
     /**
      * Cosntructor
      * @param initPrice - the initial price
      */
     public StopSellOrderDispatchFilter(int initPrice) {
-        this.initPrice = initPrice;
+        this.setThreshold(initPrice);
     }
 
 
@@ -31,6 +29,6 @@ public class StopSellOrderDispatchFilter extends OrderDispatchFilter<Integer, St
      */
     @Override
     public boolean check(StopSellOrder order) {
-        return order.getPrice() >= initPrice;
+        return order.getPrice() >= this.getThreshold();
     }
 }

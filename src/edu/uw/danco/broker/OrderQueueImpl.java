@@ -40,6 +40,7 @@ public final class OrderQueueImpl<E extends Order> implements OrderQueue<E> {
     public OrderQueueImpl(final Comparator<E> orderComparator, final OrderDispatchFilter<?, E> filter) {
         queue = new TreeSet<E>(orderComparator);
         this.filter = filter;
+        filter.setOrderQueue(this);
     }
 
 
@@ -50,6 +51,7 @@ public final class OrderQueueImpl<E extends Order> implements OrderQueue<E> {
     public OrderQueueImpl(final OrderDispatchFilter<?, E> filter) {
         queue = new TreeSet<E>();
         this.filter = filter;
+        filter.setOrderQueue(this);
     }
 
 

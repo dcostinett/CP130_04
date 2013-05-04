@@ -20,9 +20,6 @@ public class OrderManagerImpl implements OrderManager {
     /** The stock ticker symbol being managed by this instance */
     private String symbol;
 
-    /** The price of the current stock being managed */
-    private int price;
-
     /** The processor that executes orders through the broker. */
     private OrderProcessor processor;
 
@@ -51,7 +48,6 @@ public class OrderManagerImpl implements OrderManager {
      */
     public OrderManagerImpl(final String symbol, int price) {
         this.symbol = symbol;
-        this.price = price;
 
         stopBuyOrderFilter = new StopBuyOrderDispatchFilter(price);
         stopSellOrderFilter = new StopSellOrderDispatchFilter(price);
@@ -77,11 +73,8 @@ public class OrderManagerImpl implements OrderManager {
      */
     @Override
     public void adjustPrice(int price) {
-        this.price = price;
         stopBuyOrderFilter.setThreshold(price);
-        stopBuyOrderQueue.dispatchOrders();
         stopSellOrderFilter.setThreshold(price);
-        stopSellOrderQueue.dispatchOrders();
     }
 
 
@@ -92,7 +85,9 @@ public class OrderManagerImpl implements OrderManager {
     @Override
     public void queueOrder(final StopBuyOrder order) {
         stopBuyOrderQueue.enqueue(order);
-        processor.process(order);
+        if (null != processor) {
+            processor.process(order);
+        }
     }
 
 
@@ -103,7 +98,9 @@ public class OrderManagerImpl implements OrderManager {
     @Override
     public void queueOrder(final StopSellOrder order) {
         stopSellOrderQueue.enqueue(order);
-        processor.process(order);
+        if (null != processor) {
+            processor.process(order);
+        }
     }
 
 

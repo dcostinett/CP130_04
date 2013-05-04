@@ -1,9 +1,14 @@
 package edu.uw.danco.broker;
 
+import edu.uw.ext.framework.account.AccountException;
 import edu.uw.ext.framework.account.AccountManager;
 import edu.uw.ext.framework.broker.OrderProcessor;
 import edu.uw.ext.framework.exchange.StockExchange;
 import edu.uw.ext.framework.order.Order;
+import org.springframework.jmx.export.UnableToRegisterMBeanException;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -14,6 +19,9 @@ import edu.uw.ext.framework.order.Order;
  * OrderProcessor implementation that executes orders through the broker.
  */
 public class StockTraderOrderProcessor implements OrderProcessor {
+
+    /** The logger */
+    private static Logger LOGGER = Logger.getLogger(StockTraderOrderProcessor.class.getName());
 
     /** The AccountManager used by this processor */
     private AccountManager accountManager;
@@ -40,7 +48,13 @@ public class StockTraderOrderProcessor implements OrderProcessor {
     @Override
     public void process(final Order order) {
         if (exchange.isOpen()) {
-            exchange.executeTrade(order);
+            try {
+                accountManager.getAccount(order.getAccountId())
+                        .reflectOrder(order, exchange.getQuote(order.getStockTicker()).getPrice());
+                exchange.executeTrade(order);
+            } catch (AccountException e) {
+                LOGGER.log(Level.SEVERE, "Unable to get account for " + order.getAccountId(), e);
+            }
         }
     }
 }

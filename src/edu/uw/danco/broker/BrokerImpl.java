@@ -58,7 +58,8 @@ public class BrokerImpl implements Broker, ExchangeListener {
 
         for (String stockTicker : stockTickers) {
             StockQuote quote = exchange.getQuote(stockTicker);
-            this.orderManagers.put(stockTicker, new OrderManagerImpl(quote.getTicker(), quote.getPrice()));
+            OrderManager orderManager = new OrderManagerImpl(quote.getTicker(), quote.getPrice());
+            this.orderManagers.put(stockTicker, orderManager);
         }
 
         OrderDispatchFilter<Boolean, Order> filter = new MarketDispatchFilter(exchange.isOpen());
@@ -78,14 +79,19 @@ public class BrokerImpl implements Broker, ExchangeListener {
         this.exchange = exchange;
 
         String[] stockTickers = this.exchange.getTickers();
-        this.orderManagers = new TreeMap<String, OrderManager>();
+        orderManagers = new TreeMap<String, OrderManager>();
+
+        OrderProcessor processor = new StockTraderOrderProcessor(acctManager, exchange);
 
         for (String stockTicker : stockTickers) {
             StockQuote quote = exchange.getQuote(stockTicker);
-            this.orderManagers.put(stockTicker, new OrderManagerImpl(quote.getTicker(), quote.getPrice()));
+            OrderManager orderManager = new OrderManagerImpl(quote.getTicker(), quote.getPrice());
+            orderManager.setOrderProcessor(processor);
+            orderManagers.put(stockTicker, orderManager);
         }
 
         marketOrders = new OrderQueueImpl<Order>(new MarketDispatchFilter(exchange.isOpen()));
+        marketOrders.setOrderProcessor(processor);
     }
 
     /**
@@ -182,57 +188,109 @@ public class BrokerImpl implements Broker, ExchangeListener {
         return account;
     }
 
+
+    /**
+     * Gets the current market stock quote reflecting trading price
+     * @param ticker - the stock symbol
+     * @return - a current market quote
+     * @throws BrokerException
+     */
     @Override
     public StockQuote requestQuote(String ticker) throws BrokerException {
         return exchange.getQuote(ticker);
     }
 
+
+    /**
+     * Enqueue a buy order
+     * @param order - the order for a specific stock and number of shares
+     * @throws BrokerException
+     */
     @Override
     public void placeOrder(MarketBuyOrder order) throws BrokerException {
         marketOrders.enqueue(order);
         marketOrders.dispatchOrders();
     }
 
+
+    /**
+     * Place a market order
+     * @param order - the order to place for a specific stock and number of shares
+     * @throws BrokerException
+     */
     @Override
     public void placeOrder(MarketSellOrder order) throws BrokerException {
         marketOrders.enqueue(order);
         marketOrders.dispatchOrders();
     }
 
+
+    /**
+     * Place a StopBuy order
+     * @param order - the order to place for a specific stock at a specific price
+     * @throws BrokerException
+     */
     @Override
     public void placeOrder(StopBuyOrder order) throws BrokerException {
         orderManagers.get(order.getStockTicker()).queueOrder(order);
     }
 
+
+    /**
+     * Place a StopSell order
+     * @param order - the order to place for a specific stock at a specified price
+     * @throws BrokerException
+     */
     @Override
     public void placeOrder(StopSellOrder order) throws BrokerException {
         orderManagers.get(order.getStockTicker()).queueOrder(order);
     }
 
+
+    /**
+     * Close the exchange?
+     * @throws BrokerException
+     */
     @Override
     public void close() throws BrokerException {
         // no op?
     }
 
+
+    /**
+     * Event handler for opening the exchange
+     * @param event - the exchange opened event
+     */
     @Override
     public void exchangeOpened(ExchangeEvent event) {
+        LOGGER.info("Exchange opened");
         exchange.addExchangeListener(this);
     }
 
+
+    /**
+     * Event handler for closing the exchange
+     * @param event -
+     */
     @Override
     public void exchangeClosed(ExchangeEvent event) {
+        LOGGER.info("Exchange closed");
         exchange.removeExchangeListener(this);
     }
 
+
+    /**
+     * Event handler for a change in price
+     * @param event - the change for a specific stock
+     */
     @Override
     public void priceChanged(ExchangeEvent event) {
         orderManagers.get(event.getTicker()).adjustPrice(event.getPrice());
-
     }
 
     /**
      * Sets the account manager.
-     * @param accountManager
+     * @param accountManager - the account manager
      */
     protected void setAccountManager(final AccountManager accountManager) {
         this.acctManager = accountManager;
@@ -241,7 +299,7 @@ public class BrokerImpl implements Broker, ExchangeListener {
 
     /**
      * Sets the market order queue's dispatch filter.
-     * @param marketDispatchFilter
+     * @param marketDispatchFilter - the market dispatch filter
      */
     protected void setMarketDispatchFilter(final MarketDispatchFilter marketDispatchFilter) {
         this.marketDispatchFilter = marketDispatchFilter;
@@ -250,7 +308,7 @@ public class BrokerImpl implements Broker, ExchangeListener {
 
     /**
      * Sets the market order queue.
-     * @param marketOrders
+     * @param marketOrders - queue for market orders
      */
     protected void setMarketOrderQueue(final OrderQueue<Order> marketOrders) {
         this.marketOrders = marketOrders;
@@ -259,7 +317,7 @@ public class BrokerImpl implements Broker, ExchangeListener {
 
     /**
      * Sets the stock exchange.
-     * @param stockExchange
+     * @param stockExchange - the exchange for trading
      */
     protected void setStockExchange(final StockExchange stockExchange) {
         this.exchange = stockExchange;
@@ -268,8 +326,8 @@ public class BrokerImpl implements Broker, ExchangeListener {
 
     /**
      * Helper method to hash a password
-     * @param pw
-     * @return
+     * @param pw - account's password
+     * @return - the hashed password value
      */
     private byte[] hashPassword(final String pw) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance(ALGORITHM);

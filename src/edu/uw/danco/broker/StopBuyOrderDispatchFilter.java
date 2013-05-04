@@ -13,16 +13,12 @@ import edu.uw.ext.framework.order.StopBuyOrder;
  */
 public class StopBuyOrderDispatchFilter extends OrderDispatchFilter<Integer, StopBuyOrder> {
 
-    /** Price of the StopBuyOrder */
-    private int initPrice;
-
-
     /**
      * Constructor
      * @param initPrice - the initial price
      */
     public StopBuyOrderDispatchFilter(int initPrice) {
-        this.initPrice = initPrice;
+        this.setThreshold(initPrice);
     }
 
 
@@ -33,6 +29,6 @@ public class StopBuyOrderDispatchFilter extends OrderDispatchFilter<Integer, Sto
      */
     @Override
     public boolean check(StopBuyOrder order) {
-        return order.getPrice() <= initPrice;
+        return order.getPrice() <= this.getThreshold();
     }
 }
