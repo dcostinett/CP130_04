@@ -85,9 +85,6 @@ public class OrderManagerImpl implements OrderManager {
     @Override
     public void queueOrder(final StopBuyOrder order) {
         stopBuyOrderQueue.enqueue(order);
-        if (null != processor) {
-            processor.process(order);
-        }
     }
 
 
@@ -98,9 +95,6 @@ public class OrderManagerImpl implements OrderManager {
     @Override
     public void queueOrder(final StopSellOrder order) {
         stopSellOrderQueue.enqueue(order);
-        if (null != processor) {
-            processor.process(order);
-        }
     }
 
 
@@ -112,6 +106,8 @@ public class OrderManagerImpl implements OrderManager {
     @Override
     public void setOrderProcessor(final OrderProcessor processor) {
         this.processor = processor;
+        stopBuyOrderQueue.setOrderProcessor(processor);
+        stopSellOrderQueue.setOrderProcessor(processor);
     }
 
 

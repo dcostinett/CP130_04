@@ -14,25 +14,21 @@ import edu.uw.ext.framework.order.Order;
  */
 public class MarketDispatchFilter extends OrderDispatchFilter<Boolean, Order> {
 
-    /** The initial state of the market */
-    private boolean marketState = Boolean.TRUE;
-
-
     /**
      * Constructor
      * @param marketState - the initial state of the market
      */
     public MarketDispatchFilter(boolean marketState) {
-        this.marketState = marketState;
+        setThreshold(marketState);
     }
 
 
     /**
      * Test if the order may be dispatched
      * @param order - the order to be tested for dispatch
-     * @return
+     * @return - the threshold
      */
     public boolean check(final Order order) {
-        return marketState;
+        return getThreshold();
     }
 }

@@ -15,7 +15,7 @@ public class BrokerFactoryImpl implements BrokerFactory {
 
     @Override
     public Broker newBroker(String name, AccountManager acctMngr, StockExchange exch) {
-        BrokerImpl broker = new BrokerImpl();
+        BrokerImpl broker = new BrokerImpl(name, acctMngr, exch);
         return broker;
     }
 }

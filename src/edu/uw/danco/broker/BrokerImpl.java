@@ -53,17 +53,6 @@ public class BrokerImpl implements Broker, ExchangeListener {
      * Constructor for sub classes
      */
     protected BrokerImpl() {
-        String[] stockTickers = this.exchange.getTickers();
-        this.orderManagers = new TreeMap<String, OrderManager>();
-
-        for (String stockTicker : stockTickers) {
-            StockQuote quote = exchange.getQuote(stockTicker);
-            OrderManager orderManager = new OrderManagerImpl(quote.getTicker(), quote.getPrice());
-            this.orderManagers.put(stockTicker, orderManager);
-        }
-
-        OrderDispatchFilter<Boolean, Order> filter = new MarketDispatchFilter(exchange.isOpen());
-        marketOrders = new OrderQueueImpl<Order>(filter);
     }
 
 
@@ -77,6 +66,7 @@ public class BrokerImpl implements Broker, ExchangeListener {
         this.brokerName = brokerName;
         this.acctManager = acctManager;
         this.exchange = exchange;
+        exchange.addExchangeListener(this);
 
         String[] stockTickers = this.exchange.getTickers();
         orderManagers = new TreeMap<String, OrderManager>();
@@ -90,7 +80,8 @@ public class BrokerImpl implements Broker, ExchangeListener {
             orderManagers.put(stockTicker, orderManager);
         }
 
-        marketOrders = new OrderQueueImpl<Order>(new MarketDispatchFilter(exchange.isOpen()));
+        marketDispatchFilter = new MarketDispatchFilter(exchange.isOpen());
+        marketOrders = new OrderQueueImpl<Order>(marketDispatchFilter);
         marketOrders.setOrderProcessor(processor);
     }
 
@@ -180,6 +171,8 @@ public class BrokerImpl implements Broker, ExchangeListener {
                     LOGGER.log(Level.SEVERE, "Unable to create password hash", e);
                     throw new BrokerException(e);
                 }
+            } else {
+                throw new BrokerException("Unable to retrieve requested account: " + username);
             }
         } catch (AccountException e) {
             LOGGER.log(Level.SEVERE, "Unable to retrieve account with name: " + username, e);
@@ -264,7 +257,8 @@ public class BrokerImpl implements Broker, ExchangeListener {
     @Override
     public void exchangeOpened(ExchangeEvent event) {
         LOGGER.info("Exchange opened");
-        exchange.addExchangeListener(this);
+        marketDispatchFilter.setThreshold(Boolean.TRUE);
+        marketOrders.dispatchOrders();
     }
 
 
@@ -275,7 +269,7 @@ public class BrokerImpl implements Broker, ExchangeListener {
     @Override
     public void exchangeClosed(ExchangeEvent event) {
         LOGGER.info("Exchange closed");
-        exchange.removeExchangeListener(this);
+        marketDispatchFilter.setThreshold(Boolean.FALSE);
     }
 
 
