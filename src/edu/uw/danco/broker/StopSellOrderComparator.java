@@ -1,10 +1,7 @@
 package edu.uw.danco.broker;
 
-import com.mysql.jdbc.interceptors.ServerStatusDiffInterceptor;
-import edu.uw.ext.framework.order.PricedOrder;
 import edu.uw.ext.framework.order.StopSellOrder;
 
-import javax.jnlp.IntegrationService;
 import java.util.Comparator;
 
 /**
