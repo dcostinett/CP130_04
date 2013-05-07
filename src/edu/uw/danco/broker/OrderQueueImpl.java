@@ -74,9 +74,11 @@ public final class OrderQueueImpl<E extends Order> implements OrderQueue<E> {
     @Override
     public E dequeue() {
         E order = null;
-        if (!queue.isEmpty() && filter.check(queue.first())) {
-            order = queue.first();
-            queue.remove(order);
+        if (!queue.isEmpty()) {
+            if (filter.check(queue.first())) {
+                order = queue.first();
+                queue.remove(order);
+            }
         }
         return order;
     }

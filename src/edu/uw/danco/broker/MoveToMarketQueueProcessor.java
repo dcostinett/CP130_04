@@ -22,7 +22,7 @@ public class MoveToMarketQueueProcessor implements OrderProcessor {
      * Constructor
      * @param marketQueue - the queue the orders will be moved to
      */
-    public MoveToMarketQueueProcessor(OrderQueue<Order> marketQueue) {
+    public MoveToMarketQueueProcessor(final OrderQueue<Order> marketQueue) {
         this.marketQueue = marketQueue;
     }
 

@@ -27,9 +27,6 @@ public class BrokerImpl implements Broker, ExchangeListener {
     /** The logger */
     private static final Logger LOGGER = Logger.getLogger(BrokerImpl.class.getName());
 
-    /** Algorithm used in password hashing */
-    public static final String ALGORITHM = "SHA1";
-
     /** The name of this broker instance */
     private String brokerName;
 
@@ -66,23 +63,24 @@ public class BrokerImpl implements Broker, ExchangeListener {
         this.brokerName = brokerName;
         this.acctManager = acctManager;
         this.exchange = exchange;
-        exchange.addExchangeListener(this);
 
         String[] stockTickers = this.exchange.getTickers();
         orderManagers = new TreeMap<String, OrderManager>();
 
-        OrderProcessor processor = new StockTraderOrderProcessor(acctManager, exchange);
-
-        for (String stockTicker : stockTickers) {
-            StockQuote quote = exchange.getQuote(stockTicker);
-            OrderManager orderManager = new OrderManagerImpl(quote.getTicker(), quote.getPrice());
-            orderManager.setOrderProcessor(processor);
-            orderManagers.put(stockTicker, orderManager);
-        }
-
+        final OrderProcessor processor = new StockTraderOrderProcessor(acctManager, exchange);
         marketDispatchFilter = new MarketDispatchFilter(exchange.isOpen());
         marketOrders = new OrderQueueImpl<Order>(marketDispatchFilter);
         marketOrders.setOrderProcessor(processor);
+
+        final OrderProcessor orderProc = new MoveToMarketQueueProcessor(marketOrders);
+        for (String stockTicker : stockTickers) {
+            StockQuote quote = exchange.getQuote(stockTicker);
+            OrderManager orderManager = new OrderManagerImpl(quote.getTicker(), quote.getPrice());
+            orderManager.setOrderProcessor(orderProc);
+            orderManagers.put(stockTicker, orderManager);
+        }
+
+        exchange.addExchangeListener(this);     //when adding self as listener, always do it as the last thing.
     }
 
     /**
@@ -156,22 +154,7 @@ public class BrokerImpl implements Broker, ExchangeListener {
         try {
             account = acctManager.getAccount(username);
 
-            if (account != null) {
-                MessageDigest md = null;
-                try {
-                    md = MessageDigest.getInstance(ALGORITHM);
-                    md.update(password.getBytes());
-
-                    if (!MessageDigest.isEqual(md.digest(), account.getPasswordHash())) {
-                        account = null;
-                        LOGGER.log(Level.SEVERE, "Provided password doesn't match account");
-                        throw new BrokerException("Password doesn't match account");
-                    }
-                } catch (NoSuchAlgorithmException e) {
-                    LOGGER.log(Level.SEVERE, "Unable to create password hash", e);
-                    throw new BrokerException(e);
-                }
-            } else {
+            if (account == null || !acctManager.validateLogin(username, password)) {
                 throw new BrokerException("Unable to retrieve requested account: " + username);
             }
         } catch (AccountException e) {
@@ -202,7 +185,6 @@ public class BrokerImpl implements Broker, ExchangeListener {
     @Override
     public void placeOrder(MarketBuyOrder order) throws BrokerException {
         marketOrders.enqueue(order);
-        marketOrders.dispatchOrders();
     }
 
 
@@ -214,7 +196,6 @@ public class BrokerImpl implements Broker, ExchangeListener {
     @Override
     public void placeOrder(MarketSellOrder order) throws BrokerException {
         marketOrders.enqueue(order);
-        marketOrders.dispatchOrders();
     }
 
 
@@ -246,7 +227,13 @@ public class BrokerImpl implements Broker, ExchangeListener {
      */
     @Override
     public void close() throws BrokerException {
-        // no op?
+        try {
+            exchange.removeExchangeListener(this);
+            acctManager.close();
+            orderManagers = null;
+        } catch (AccountException e) {
+            LOGGER.log(Level.WARNING, "Unable to close account", e);
+        }
     }
 
 
@@ -317,16 +304,4 @@ public class BrokerImpl implements Broker, ExchangeListener {
         this.exchange = stockExchange;
     }
 
-
-    /**
-     * Helper method to hash a password
-     * @param pw - account's password
-     * @return - the hashed password value
-     */
-    private byte[] hashPassword(final String pw) throws NoSuchAlgorithmException {
-        MessageDigest md = MessageDigest.getInstance(ALGORITHM);
-        md.update(pw.getBytes());
-
-        return md.digest();
-    }
 }

@@ -17,8 +17,8 @@ public class StopBuyOrderDispatchFilter extends OrderDispatchFilter<Integer, Sto
      * Constructor
      * @param initPrice - the initial price
      */
-    public StopBuyOrderDispatchFilter(int initPrice) {
-        this.setThreshold(initPrice);
+    public StopBuyOrderDispatchFilter(final int initPrice) {
+        setThreshold(initPrice);
     }
 
 
@@ -28,7 +28,7 @@ public class StopBuyOrderDispatchFilter extends OrderDispatchFilter<Integer, Sto
      * @return - true if the order price is below or equal to the threshold
      */
     @Override
-    public boolean check(StopBuyOrder order) {
-        return order.getPrice() <= this.getThreshold();
+    public boolean check(final StopBuyOrder order) {
+        return order.getPrice() <= getThreshold();
     }
 }

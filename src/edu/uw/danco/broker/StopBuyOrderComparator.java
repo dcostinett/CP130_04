@@ -24,8 +24,10 @@ public class StopBuyOrderComparator implements Comparator<StopBuyOrder> {
      * lower order id.
      */
     @Override
-    public int compare(StopBuyOrder o1, StopBuyOrder o2) {
+    public int compare(final StopBuyOrder o1, final StopBuyOrder o2) {
         int result;
+
+        //see notes in StopSellOrderComparator
 
         result = o1.getPrice() < o2.getPrice() ? -1 : o1.getPrice() > o2.getPrice() ? 1 : 0;
 

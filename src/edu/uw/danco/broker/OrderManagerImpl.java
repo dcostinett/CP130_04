@@ -20,9 +20,6 @@ public class OrderManagerImpl implements OrderManager {
     /** The stock ticker symbol being managed by this instance */
     private String symbol;
 
-    /** The processor that executes orders through the broker. */
-    private OrderProcessor processor;
-
     /** The OrderQueue in which to place stop buy orders */
     private OrderQueue<StopBuyOrder> stopBuyOrderQueue;
 
@@ -35,6 +32,7 @@ public class OrderManagerImpl implements OrderManager {
     /** The StopSellOrder filter */
     private OrderDispatchFilter<Integer, StopSellOrder> stopSellOrderFilter;
 
+
     /**
      * Constructor to be used by sub classes to finish initialization.
      */
@@ -46,7 +44,7 @@ public class OrderManagerImpl implements OrderManager {
      * @param symbol - the ticker symbol of the stock this instance is manage orders for
      * @param price - the current price of stock to be managed
      */
-    public OrderManagerImpl(final String symbol, int price) {
+    public OrderManagerImpl(final String symbol, final int price) {
         this.symbol = symbol;
 
         stopBuyOrderFilter = new StopBuyOrderDispatchFilter(price);
@@ -72,7 +70,7 @@ public class OrderManagerImpl implements OrderManager {
      * @param price - the new price
      */
     @Override
-    public void adjustPrice(int price) {
+    public void adjustPrice(final int price) {
         stopBuyOrderFilter.setThreshold(price);
         stopSellOrderFilter.setThreshold(price);
     }
@@ -105,7 +103,6 @@ public class OrderManagerImpl implements OrderManager {
      */
     @Override
     public void setOrderProcessor(final OrderProcessor processor) {
-        this.processor = processor;
         stopBuyOrderQueue.setOrderProcessor(processor);
         stopSellOrderQueue.setOrderProcessor(processor);
     }
@@ -121,8 +118,8 @@ public class OrderManagerImpl implements OrderManager {
 
 
     /**
-     *
-     * @param stopBuyOrderFilter
+     * Set the StopBuyrderFilter
+     * @param stopBuyOrderFilter - the filter
      */
     protected void 	setStopBuyOrderFilter(final OrderDispatchFilter<Integer,StopBuyOrder> stopBuyOrderFilter) {
         this.stopBuyOrderFilter = stopBuyOrderFilter;
@@ -130,28 +127,28 @@ public class OrderManagerImpl implements OrderManager {
 
 
     /**
-     *
-     * @param stopBuyOrderQueue
+     * Set t he StopBuyOrder Queue
+     * @param stopBuyOrderQueue the queue
      */
-    protected void 	setStopBuyOrderQueue(final OrderQueue<StopBuyOrder> stopBuyOrderQueue) {
+    protected void setStopBuyOrderQueue(final OrderQueue<StopBuyOrder> stopBuyOrderQueue) {
         this.stopBuyOrderQueue = stopBuyOrderQueue;
     }
 
 
     /**
-     *
-     * @param stopSellOrderFilter
+     * Set the StopSellOrderFilter
+     * @param stopSellOrderFilter - the filter
      */
-    protected void 	setStopSellOrderFilter(final OrderDispatchFilter<Integer, StopSellOrder> stopSellOrderFilter) {
+    protected void setStopSellOrderFilter(final OrderDispatchFilter<Integer, StopSellOrder> stopSellOrderFilter) {
         this.stopSellOrderFilter = stopSellOrderFilter;
     }
 
 
     /**
-     *
-     * @param stopSellOrderQueue
+     * THe StopSellOrderQueue
+     * @param stopSellOrderQueue - the queue
      */
-    protected void 	setStopSellOrderQueue(final OrderQueue<StopSellOrder> stopSellOrderQueue) {
+    protected void setStopSellOrderQueue(final OrderQueue<StopSellOrder> stopSellOrderQueue) {
         this.stopSellOrderQueue = stopSellOrderQueue;
     }
 }

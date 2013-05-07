@@ -1,8 +1,10 @@
 package edu.uw.danco.broker;
 
+import com.mysql.jdbc.interceptors.ServerStatusDiffInterceptor;
 import edu.uw.ext.framework.order.PricedOrder;
 import edu.uw.ext.framework.order.StopSellOrder;
 
+import javax.jnlp.IntegrationService;
 import java.util.Comparator;
 
 /**
@@ -25,19 +27,21 @@ public class StopSellOrderComparator implements Comparator<StopSellOrder> {
      * lower order id.
      */
     @Override
-    public int compare(StopSellOrder o1, StopSellOrder o2) {
+    public int compare(final StopSellOrder o1, final StopSellOrder o2) {
         int result;
 
         result = o1.getPrice() > o2.getPrice() ? -1 : o1.getPrice() < o2.getPrice() ? 1 : 0;
 
         if (result == 0) {
+            // Russ implemented Comparable and uses o1.compareTo(o2); -- this encapsulates both the number and orderId
+            // result = o1.compareTo(o2);
+
             result = o1.getNumberOfShares() > o2.getNumberOfShares() ? -1 :
                              o1.getNumberOfShares() < o2.getNumberOfShares() ? 1 : 0;
-        }
-
-        if (result == 0) {
-            result = o1.getOrderId() > o2.getOrderId() ? 1 :
-                             o1.getOrderId() < o2.getOrderId() ? -1 : 0;
+            if (result == 0) {
+                result = o1.getOrderId() > o2.getOrderId() ? 1 :
+                        o1.getOrderId() < o2.getOrderId() ? -1 : 0;
+            }
         }
 
         return result;
