@@ -36,7 +36,7 @@ public class OrderQueueTest extends AbstractOrderQueueTest {
         /*********************************************************************
          * This needs to be an instance of your OrderQueue and Comparator.   *
          *********************************************************************/
-        return new OrderQueueImpl<StopBuyOrder>(new StopBuyOrderComparator(), filter);
+        return new OrderQueueImpl<StopBuyOrder>(StopBuyOrderComparator.INSTANCE, filter);
     }
 
     /**
@@ -53,7 +53,7 @@ public class OrderQueueTest extends AbstractOrderQueueTest {
         /*********************************************************************
          * This needs to be an instance of your OrderQueue and Comparator.   *
          *********************************************************************/
-        return new OrderQueueImpl<StopSellOrder>(new StopSellOrderComparator(), filter);
+        return new OrderQueueImpl<StopSellOrder>(StopSellOrderComparator.INSTANCE, filter);
     }
     
     /**

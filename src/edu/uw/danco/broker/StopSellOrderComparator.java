@@ -12,7 +12,15 @@ import java.util.Comparator;
  *
  * Comparator which places the orders in descending order - the highest priced order is the first item in the list.
  */
-public class StopSellOrderComparator implements Comparator<StopSellOrder> {
+public final class StopSellOrderComparator implements Comparator<StopSellOrder> {
+
+    /**
+     * Private constructor to prevent instantiation
+     */
+    private StopSellOrderComparator() {}
+
+    /** Instance for use in Singleton pattern */
+    public static final StopSellOrderComparator INSTANCE = new StopSellOrderComparator();
 
     /**
      * Performs the comparison
@@ -27,18 +35,12 @@ public class StopSellOrderComparator implements Comparator<StopSellOrder> {
     public int compare(final StopSellOrder o1, final StopSellOrder o2) {
         int result;
 
+        //could also use Integer's compare to method
         result = o1.getPrice() > o2.getPrice() ? -1 : o1.getPrice() < o2.getPrice() ? 1 : 0;
 
         if (result == 0) {
             // Russ implemented Comparable and uses o1.compareTo(o2); -- this encapsulates both the number and orderId
-            // result = o1.compareTo(o2);
-
-            result = o1.getNumberOfShares() > o2.getNumberOfShares() ? -1 :
-                             o1.getNumberOfShares() < o2.getNumberOfShares() ? 1 : 0;
-            if (result == 0) {
-                result = o1.getOrderId() > o2.getOrderId() ? 1 :
-                        o1.getOrderId() < o2.getOrderId() ? -1 : 0;
-            }
+            result = o1.compareTo(o2);
         }
 
         return result;

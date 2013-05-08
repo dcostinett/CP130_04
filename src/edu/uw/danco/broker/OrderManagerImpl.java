@@ -50,8 +50,8 @@ public class OrderManagerImpl implements OrderManager {
         stopBuyOrderFilter = new StopBuyOrderDispatchFilter(price);
         stopSellOrderFilter = new StopSellOrderDispatchFilter(price);
 
-        stopBuyOrderQueue = new OrderQueueImpl<StopBuyOrder>(new StopBuyOrderComparator(), stopBuyOrderFilter);
-        stopSellOrderQueue = new OrderQueueImpl<StopSellOrder>(new StopSellOrderComparator(), stopSellOrderFilter);
+        stopBuyOrderQueue = new OrderQueueImpl<StopBuyOrder>(StopBuyOrderComparator.INSTANCE, stopBuyOrderFilter);
+        stopSellOrderQueue = new OrderQueueImpl<StopSellOrder>(StopSellOrderComparator.INSTANCE, stopSellOrderFilter);
     }
 
 

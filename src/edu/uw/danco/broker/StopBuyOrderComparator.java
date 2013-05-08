@@ -1,7 +1,5 @@
 package edu.uw.danco.broker;
 
-import edu.uw.ext.framework.order.Order;
-import edu.uw.ext.framework.order.PricedOrder;
 import edu.uw.ext.framework.order.StopBuyOrder;
 
 import java.util.Comparator;
@@ -12,7 +10,18 @@ import java.util.Comparator;
  * Date: 4/28/13
  * Time: 4:37 PM
  */
-public class StopBuyOrderComparator implements Comparator<StopBuyOrder> {
+public final class StopBuyOrderComparator implements Comparator<StopBuyOrder> {
+
+    /**
+     * Private constructor to prevent instantiation
+     */
+    private StopBuyOrderComparator() {
+    }
+
+    /**
+     * Instance for use in Singleton pattern
+     */
+    public static final StopBuyOrderComparator INSTANCE = new StopBuyOrderComparator();
 
     /**
      * Performs the comparison
@@ -27,19 +36,10 @@ public class StopBuyOrderComparator implements Comparator<StopBuyOrder> {
     public int compare(final StopBuyOrder o1, final StopBuyOrder o2) {
         int result;
 
-        //see notes in StopSellOrderComparator
-
         result = o1.getPrice() < o2.getPrice() ? -1 : o1.getPrice() > o2.getPrice() ? 1 : 0;
 
         if (result == 0) {
-            result = o1.getNumberOfShares() > o2.getNumberOfShares() ? -1 :
-                             o1.getNumberOfShares() < o2.getNumberOfShares() ? 1 : 0;
-        }
-
-        if (result == 0) {
-            result = o1.getOrderId() < o2.getOrderId() ? -1 :
-                             o1.getOrderId() > o2.getOrderId() ? 1 : 0;
-        }
+            result = o1.compareTo(o2);        }
 
         return result;
     }
